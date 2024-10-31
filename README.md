@@ -1,5 +1,5 @@
-# JasperReport
-Hallo Semua 😄👋 Pada Tugas Pemograman Berorientasi Objek ini, saya menerapkan program CRUD (Create, Read, Update, Delete) pada java GUI(Graphical User Interfaces) dan juga penggunaan jasper report dengan IDE netbeans. Untuk mengimplementasikan program tersebut saya menggunakan bahasa pemrograman java dan menggunakan aplikasi pengelola database yaitu postgreSQL dan juga plugin iReport.
+# Upload File Csv
+Hallo Semua 😄👋 Pada Tugas Pemograman Berorientasi Objek ini, saya menerapkan program CRUD (Create, Read, Update, Delete)  dan  penggunaan jasper juga upload file csv pada java GUI(Graphical User Interfaces) dengan IDE netbeans. Untuk mengimplementasikan program tersebut saya menggunakan bahasa pemrograman java dan menggunakan aplikasi pengelola database yaitu postgreSQL dan juga plugin iReport.
 dan saya menggunakan tabel  entitas Matakuliah dengan atribut Kode MK, SKS, NamaMk, Semester Ajar.
 ## Aplikasi
 - IDE NetBeans 16
@@ -10,6 +10,13 @@ dan saya menggunakan tabel  entitas Matakuliah dengan atribut Kode MK, SKS, Nama
 ## Library
 - PostgreSQL JDBC Driver
 - [JasperReport](https://drive.google.com/drive/folders/1_i8xBCdLXeMcGdmnTWa2SEnL4oc2sW78?usp=sharing)
+## Feature
+-  Melakukan insert data
+-  Melakukan update data
+-  Menghapus data
+-  Menampilkan data ke tabel
+-  Melakukan import file csv
+-  Mencetak laporan data
 
 ## Cara Instalasi 
 Install Plugin Ireport di IDE Netbeans dengan mencari menu tools > plugins > donload > add plugins . Tambahkan plugins ireport yang ada di dalam folder yang memiliki tipe file nbm jika tterjadi error install dulu `org-jdeskop-layout-realese.nbm` kemudian baru instal file nbm yang ada didalam folder ireport
@@ -21,35 +28,58 @@ Setelah File jadi anda bisa membuat tampilan layout anda sesuka hati, namun layo
 ![image](https://github.com/user-attachments/assets/7fd7d5f1-db54-43d7-bdac-57ac60bf4a10)
 
 ## Cara Penggunaan
-Buat java frame yang berisi program untuk CRUD (create, read, update, delete)  dan juga Cetak untuk menjalankan jasperReport kemudian hubungkan Netbeans dengan database di PostgreSql dan juga tambahkan liblary di projeck yang digunakan. tambahkan kode dibawah ini pada button cetak
-     
-      try {
-            // TODO add your handling code here:
-            conn = DriverManager.getConnection(koneksi, user, password);
-            String sql = "select * from matakuliah";
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            File alamat = new File(".");
-            System.out.println(alamat.getCanonicalPath());
-            
-            File jasperFile = new File(alamat.getCanonicalPath() + "/src/yourfolder/" + "yourfile.jrxml");
-            JasperDesign jd = JRXmlLoader.load(jasperFile);
-            JRResultSetDataSource jds = new JRResultSetDataSource(rs);
-            JasperReport jr = JasperCompileManager.compileReport(jd);
-            JasperPrint jp = (JasperPrint) JasperFillManager.fillReport(jr, new HashMap<String, Object>(), jds);
-            JasperViewer.viewReport(jp);
-        } catch (SQLException ex) {
-            Logger.getLogger(ReportMataKuliah.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(ReportMataKuliah.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (JRException ex) {
-            Logger.getLogger(ReportMataKuliah.class.getName()).log(Level.SEVERE, null, ex);
-        }
-  
-Saat button cetak di klik maka tampilan jasper report akan muncul seperti ini
-![image](https://github.com/user-attachments/assets/296fe027-e2af-4527-bba7-4511b176a7b2)
+Buat java frame yang berisi program untuk CRUD (create, read, update, delete) Cetak dan Upload(untuk button mengimport file csv)  kemudian hubungkan Netbeans dengan database di PostgreSql dan juga tambahkan liblary di projeck yang digunakan. tambahkan kode dibawah ini pada button Upload
 
-mungkin itu saya yang dapat saya jelaskan mengenai jasper report pesan saya pakai aplikasi yang kompetible dengan ireport 5.6.0
+    JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        int returnValue = jfc.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File filePilihan = jfc.getSelectedFile();
+            System.out.println("yang dipilih : " + filePilihan.getAbsolutePath());
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(filePilihan));
+                String baris = new String("");
+                String pemisah = ";";
+                while ((baris = br.readLine()) != null) //returns a Boolean value
+                {
+                    String[] dataMhs = baris.split(pemisah);
+                    String kodemk = dataMhs[0];
+                    String sks = dataMhs[1];
+                    String namamk = dataMhs[2];
+                    String semester = dataMhs[3];
+                    
+                    if (!kodemk.isEmpty() && !namamk.isEmpty()) {
+                        conn = DriverManager.getConnection(koneksi, user, password);
+                        conn.setAutoCommit(false);
+                        String sql = "INSERT INTO matakuliah VALUES(?,?,?,?)";
+                        pstmt = conn.prepareStatement(sql);
+  
+                        pstmt.setString(1, kodemk);
+                        pstmt.setInt(2, Integer.parseInt(sks));
+                        pstmt.setString(3, namamk);
+                        pstmt.setInt(4, Integer.parseInt(semester));
+                        pstmt.executeUpdate();
+                        conn.commit();
+                        pstmt.close();
+                        conn.close();
+                    }
+                }
+                JOptionPane.showMessageDialog(null, "Data berhasil diupload");
+                tampil();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(ReportMataKuliah.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(ReportMataKuliah.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(ReportMataKuliah.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }                       
+     
+Saat button upload di klik maka tampilan akan muncul seperti ini
+![image](https://github.com/user-attachments/assets/f209e6b2-9ede-4b0e-99a0-ffb93dbac167)
+carilah file csv yang akan anda upload usahakan file csvnya sesuai dengan database anda dan tidak ada data primary key yang sama
+
+
+mungkin itu saya yang dapat saya jelaskan 😄
 
 
 
